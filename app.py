@@ -3,7 +3,9 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide",
+                   page_title="StockValuator")
+
 st.title("Stock Valuation App")
 
 input_s, metric1, metric2, metric3 = st.columns(4)
@@ -102,12 +104,13 @@ with dcf_tab:
     fcf_table = furture_fcf_df.combine_first(past_fcf)
     fcf_table = fcf_table.loc[["Free Cash Flow", "Discount Factor", "Discounted FCF"]]
     fcf_table = fcf_table.fillna(0).map('{:,.2f}'.format)
+    fcf_table.columns = [f"{col}e" if (isinstance(col, int) and col > max(past_fcf.columns))
+                         else col for col in fcf_table.columns]
 
 
     #Fair Value Calculation
     fair_value = round(furture_fcf_df.iloc[2].sum() / shares, 2)
-    #st.metric("Fair Value per Share", round(fair_value / shares, 2))
-    value_dif_fcf = l_close_price/fair_value
+    value_dif_fcf = abs(l_close_price - fair_value)/fair_value
 
     if l_close_price > fair_value:
         fcf_price_level = "overvalued"
